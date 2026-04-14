@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Marina Stereo Bahía Solano | Chocó</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1db954">
+
+<style>
+
+body{
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+color:white;
+text-align:center;
+
+background-image:url('banner.jpg');
+background-size:cover;
+background-position:center;
+background-attachment:fixed;
+
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.overlay{
+background:rgba(0,0,0,0.80);
+padding:40px;
+border-radius:18px;
+width:340px;
+box-shadow:0 0 30px rgba(0,0,0,0.7);
+}
+
+.cover{
+width:200px;
+height:200px;
+margin:auto;
+margin-bottom:12px;
+border-radius:15px;
+background:white;
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+}
+
+.cover img{
+width:100%;
+height:100%;
+object-fit:contain;
+}
+
+h2{
+margin:6px 0;
+font-size:22px;
+}
+
+.location{
+font-size:14px;
+margin-bottom:10px;
+opacity:0.9;
+}
+
+.song{
+font-size:14px;
+margin-bottom:18px;
+color:#1db954;
+font-weight:bold;
+}
+
+.play{
+background:#1db954;
+border:none;
+padding:12px 25px;
+border-radius:30px;
+font-size:16px;
+color:white;
+cursor:pointer;
+margin-bottom:10px;
+width:100%;
+}
+
+.share{
+background:#007bff;
+border:none;
+padding:10px 20px;
+border-radius:25px;
+color:white;
+font-size:14px;
+cursor:pointer;
+margin-top:10px;
+width:100%;
+}
+
+.install{
+background:#ff9800;
+border:none;
+padding:10px 20px;
+border-radius:25px;
+color:white;
+cursor:pointer;
+margin:12px auto 0 auto;
+display:block;
+width:100%;
+}
+
+.social img{
+width:36px;
+margin:8px;
+transition:0.3s;
+}
+
+.social img:hover{
+transform:scale(1.2);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="overlay">
+
+<div class="cover">
+<img src="logo.jpg">
+</div>
+
+<h2>Marina Stereo Bahía Solano</h2>
+
+<div class="location">
+Bahía Solano - Chocó, Colombia
+</div>
+
+<div class="song" id="songTitle">
+🎵 En vivo
+</div>
+
+<audio id="radio">
+<source src="https://marina-bahia.wisemaradio.com/listen/marina-bahia/radio.mp3" type="audio/mpeg">
+</audio>
+
+<button class="play" onclick="togglePlay()" id="playBtn">
+▶ Escuchar en vivo
+</button>
+
+<button class="share" onclick="compartirRadio()">
+📲 Compartir emisora
+</button>
+
+<button class="install" id="installBtn">
+📱 Instalar APP
+</button>
+
+<div class="social">
+
+<a href="https://wa.me/573146690446" target="_blank">
+<img src="Whatsapp.png">
+</a>
+
+<a href="https://www.instagram.com/marinastereo_arc/" target="_blank">
+<img src="instagram.png">
+</a>
+
+<a href="https://www.facebook.com/share/1HsnjS6XCG/" target="_blank">
+<img src="facebook.png">
+</a>
+
+</div>
+
+</div>
+
+<script>
+
+var audio=document.getElementById("radio");
+var btn=document.getElementById("playBtn");
+
+function togglePlay(){
+
+if(audio.paused){
+audio.play();
+btn.innerHTML="⏸ Pausar";
+}else{
+audio.pause();
+btn.innerHTML="▶ Escuchar en vivo";
+}
+
+}
+
+/* 🔥 LOGO EN BLOQUEO */
+
+if ('mediaSession' in navigator) {
+navigator.mediaSession.metadata = new MediaMetadata({
+title: "Marina Stereo Bahía Solano",
+artist: "En vivo",
+album: "Bahía Solano - Chocó",
+artwork: [
+{ src: 'logo-192.png', sizes: '192x192', type: 'image/png' },
+{ src: 'logo-512.png', sizes: '512x512', type: 'image/png' }
+]
+});
+}
+
+/* 🎧 METADATOS */
+
+async function actualizarMetadata(){
+
+try{
+
+let res = await fetch("https://marina-bahia.wisemaradio.com/api/nowplaying/marina-bahia?nocache=" + new Date().getTime());
+let data = await res.json();
+
+let texto = data.now_playing.song.text;
+
+if(texto && texto.length > 5){
+
+texto = texto.replace('.mp3','').trim();
+
+document.getElementById("songTitle").innerHTML = "🎶 " + texto;
+
+}else{
+
+document.getElementById("songTitle").innerHTML = "🎵 En vivo";
+
+}
+
+}catch(e){
+
+document.getElementById("songTitle").innerHTML = "🎵 En vivo";
+
+}
+
+}
+
+setInterval(actualizarMetadata, 10000);
+actualizarMetadata();
+
+/* 📲 COMPARTIR */
+
+function compartirRadio(){
+
+navigator.share({
+title:"Marina Stereo Bahía Solano",
+text:"Escucha Marina Stereo Bahía Solano en vivo",
+url:"https://marinabahiaplay.wisemaradio.com"
+});
+
+}
+
+/* 🔥 INSTALACIÓN CORRECTA */
+
+let deferredPrompt;
+const installBtn = document.getElementById("installBtn");
+
+/* ❌ OCULTAR SOLO EN APP */
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+  installBtn.style.display = "none";
+}
+
+/* GUARDAR EVENTO */
+window.addEventListener('beforeinstallprompt',(e)=>{
+e.preventDefault();
+deferredPrompt = e;
+});
+
+/* BOTÓN */
+installBtn.addEventListener("click",()=>{
+if(deferredPrompt){
+deferredPrompt.prompt();
+}else{
+alert("Para instalar usa el menú del navegador");
+}
+});
+
+/* SW */
+
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('sw.js');
+}
+
+</script>
+
+</body>
+</html>
